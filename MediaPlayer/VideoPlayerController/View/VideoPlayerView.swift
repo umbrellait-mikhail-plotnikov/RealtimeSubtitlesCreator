@@ -181,6 +181,10 @@ class VideoPlayerView: UIViewController, SubtitlesViewProtocol {
         verticalStack.backgroundColor = #colorLiteral(red: 0.1411764771, green: 0.3960784376, blue: 0.5647059083, alpha: 0.3)
         verticalStack.layer.cornerRadius = 15
         
+        subtitleLabel.backgroundColor = #colorLiteral(red: 0.1411764771, green: 0.3960784376, blue: 0.5647059083, alpha: 0.3)
+        subtitleLabel.layer.masksToBounds = true
+        subtitleLabel.layer.cornerRadius = 15
+        
         switchSubtitles.isOn = false
     }
     
@@ -254,6 +258,7 @@ class VideoPlayerView: UIViewController, SubtitlesViewProtocol {
                 self?.startTimer()
             }
         }
+        checkOrientation()
     }
     
     override func viewDidLayoutSubviews() {
@@ -269,10 +274,10 @@ class VideoPlayerView: UIViewController, SubtitlesViewProtocol {
             bottomSpaceToLabel.constant = self.view.bounds.height * 1/5
             subtitleLabel.textColor = .white
         case .landscapeLeft, .landscapeRight:
-            bottomSpaceToLabel.constant = 15
+            bottomSpaceToLabel.constant = 5
             subtitleLabel.textColor = .black
         default:
-            fatalError()
+            print("UnknownOrientation")
         }
         self.view.layoutIfNeeded()
     }
