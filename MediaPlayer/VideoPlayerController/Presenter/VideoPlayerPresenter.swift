@@ -17,6 +17,7 @@ class VideoPlayerPresenter: SpeechRecognizerProtocol {
         self.delegate = delegate
     }
     
+    private var isEnd = false
     private var audioFile: AVAudioFile?
     private var request = SFSpeechAudioBufferRecognitionRequest()
     private let recognizer = SFSpeechRecognizer(locale: Locale.current)
@@ -99,19 +100,16 @@ class VideoPlayerPresenter: SpeechRecognizerProtocol {
                 
                 let transcr = result.bestTranscription.formattedString
                 let components = transcr.components(separatedBy: .whitespaces)
-                var words = components.filter { !$0.isEmpty }
+                let words = components.filter { !$0.isEmpty }
                 
-                if words.count > 16 {
-                    words = Array(words[words.endIndex - 15 ..< words.endIndex])
-                }
                 self.resultString = words.joined(separator: " ")
                 
+                if words.count % 10 == 0 {
+                    self.delegate?.writeSubtitles(words.suffix(10).joined(separator: " "))
+                }
             }
         })
-        
     }
-    
-    var isEnd = false
     
     func seekTo(value: Double) {
         guard let audioFile = audioFile else { return }

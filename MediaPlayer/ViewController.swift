@@ -13,7 +13,7 @@ import UIKit
 class ViewController: UIViewController {
     
     private func pushVideoPlayerController(url: URL) {
-        let videoPlayerController = VideoPlayerView(url: url)
+        let videoPlayerController = VideoPlayerViewController(url: url)
         
         self.navigationController?.pushViewController(videoPlayerController, animated: true)
     }

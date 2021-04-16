@@ -9,5 +9,6 @@ import Foundation
 import UIKit
 
 protocol SubtitlesViewProtocol: class {
+    func writeSubtitles(_ subtitles: String)
     var resultSubtitlesString: String { get set }
 }

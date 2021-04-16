@@ -36,7 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         do {
             let fileNames = try FileManager.default.contentsOfDirectory(atPath: dir.path)
             for name in fileNames {
-                if name.hasSuffix(".m4a") {
+                if name.hasSuffix(".m4a") || name.hasSuffix(".srt") {
                     let filePath = "\(dir.path)/\(name)"
                     try FileManager.default.removeItem(atPath: filePath)
                 }

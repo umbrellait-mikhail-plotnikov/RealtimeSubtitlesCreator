@@ -13,22 +13,27 @@ class VideoPlayerViewController: UIViewController, SubtitlesViewProtocol {
     
     private var presenter: SpeechRecognizerProtocol?
     private var arrayInteractiveView = [UIView]()
+    private var numberSubtitle = 1
+    private var lastTime = "00:00"
+    private var resultSubtitles = ""
+    private var url: URL
+    private var player: AVPlayer
+    private var playerLayer: AVPlayerLayer
+    private var timerHideUI: Timer?
+    private var timerUpdateCurrentTimeVideo: Timer?
+    private var sliderIsEditing: Bool = false
     
+    private var showSubtitles: Bool = true {
+        didSet {
+            self.subtitleLabel.isHidden = !showSubtitles
+        }
+    }
     var resultSubtitlesString = "" {
         didSet {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.subtitleLabel.text = self.resultSubtitlesString
             }
-        }
-    }
-    
-    private var timerHideUI: Timer?
-    private var timerUpdateCurrentTimeVideo: Timer?
-    private var sliderIsEditing: Bool = false
-    private var showSubtitles: Bool = true {
-        didSet {
-            self.subtitleLabel.isHidden = !showSubtitles
         }
     }
     
@@ -42,9 +47,26 @@ class VideoPlayerViewController: UIViewController, SubtitlesViewProtocol {
     @IBOutlet weak var timeLabel: UILabel!
     @IBOutlet weak var horizontalSlider: UISlider!
     
-    private var url: URL
-    private var player: AVPlayer
-    private var playerLayer: AVPlayerLayer
+    func writeSubtitles(_ subtitles: String) {
+        
+        resultSubtitles += "\(numberSubtitle)\n"
+        let currentTime = Int((player.currentItem?.currentTime().seconds)!)
+        resultSubtitles += "\(lastTime) -> \(currentTime.formatToStringTime())\n"
+        resultSubtitles += "\(subtitles)\n\n"
+        lastTime = currentTime.formatToStringTime()
+        numberSubtitle += 1
+        
+    }
+    
+    private func exportSubtitlesToFile(pathToFile: URL) {
+        
+        do {
+            try resultSubtitles.write(to: pathToFile, atomically: true, encoding: .utf8)
+            print(pathToFile)
+        } catch {
+            fatalError(":(")
+        }
+    }
     
     private func startTimer() {
         DispatchQueue.main.async { [weak self] in
@@ -127,12 +149,38 @@ class VideoPlayerViewController: UIViewController, SubtitlesViewProtocol {
         startTimer()
     }
     
-    @IBAction func closeButtonTap(_ sender: Any) {
+    private func closeController() {
         presenter?.prepareToDeinit()
         timerHideUI?.invalidate()
         timerUpdateCurrentTimeVideo?.invalidate()
         
         self.navigationController?.popToRootViewController(animated: true)
+    }
+    
+    private func configureExportAlert() -> UIAlertController {
+        let alert = UIAlertController(title: "Export subtitle?", message: "Do you wanna export subtitles for this video?", preferredStyle: .alert)
+        let exportAction = UIAlertAction(title: "Yes", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let fileName = "\(self.url.lastPathComponent.dropLast(4)).srt"
+            let fullPath = path.appendingPathComponent(fileName)
+            self.exportSubtitlesToFile(pathToFile: fullPath)
+            self.closeController()
+        }
+        let cancelAction = UIAlertAction(title: "No", style: .cancel) { [weak self] _ in
+            self?.closeController()
+        }
+        
+        alert.addAction(cancelAction)
+        alert.addAction(exportAction)
+        
+        return alert
+    }
+    
+    @IBAction func closeButtonTap(_ sender: Any) {
+        let alert = configureExportAlert()
+        
+        self.present(alert, animated: true, completion: nil)
     }
     
     private func seek(to value: Float) {
