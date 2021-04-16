@@ -60,7 +60,7 @@ class VideoPlayerViewController: UIViewController, SubtitlesViewProtocol {
         
     }
     
-    private func exportSubtitlesToFile(pathToFile: URL) {
+    private func saveSubtitlesToFile(pathToFile: URL) {
         
         do {
             try resultSubtitles.write(to: pathToFile, atomically: true, encoding: .utf8)
@@ -160,13 +160,24 @@ class VideoPlayerViewController: UIViewController, SubtitlesViewProtocol {
     }
     
     private func configureExportAlert() -> UIAlertController {
-        let alert = UIAlertController(title: "Export subtitle?", message: "Do you wanna export subtitles for this video?", preferredStyle: .alert)
-        let exportAction = UIAlertAction(title: "Yes", style: .default) { [weak self] _ in
+        let alert = UIAlertController(title: "Save subtitle?", message: "Do you wanna save subtitles for this video?", preferredStyle: .alert)
+        let saveAction = UIAlertAction(title: "Yes", style: .default) { [weak self] _ in
             guard let self = self else { return }
             let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             let fileName = "\(self.url.lastPathComponent.dropLast(4)).srt"
             let fullPath = path.appendingPathComponent(fileName)
-            self.exportSubtitlesToFile(pathToFile: fullPath)
+            self.saveSubtitlesToFile(pathToFile: fullPath)
+            self.closeController()
+        }
+        let exportAction = UIAlertAction(title: "Save and Export", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let fileName = "\(self.url.lastPathComponent.dropLast(4)).srt"
+            let fullPath = path.appendingPathComponent(fileName)
+            self.saveSubtitlesToFile(pathToFile: fullPath)
+            
+            let activityViewController = UIActivityViewController(activityItems: [fullPath], applicationActivities: nil)
+            self.present(activityViewController, animated: true, completion: nil)
             self.closeController()
         }
         let cancelAction = UIAlertAction(title: "No", style: .cancel) { [weak self] _ in
@@ -174,6 +185,7 @@ class VideoPlayerViewController: UIViewController, SubtitlesViewProtocol {
         }
         
         alert.addAction(cancelAction)
+        alert.addAction(saveAction)
         alert.addAction(exportAction)
         
         return alert
@@ -182,7 +194,7 @@ class VideoPlayerViewController: UIViewController, SubtitlesViewProtocol {
     @IBAction func closeButtonTap(_ sender: Any) {
         let alert = configureExportAlert()
         
-        self.present(alert, animated: true, completion: nil)
+        self.present(alert, animated: true)
     }
     
     private func seek(to value: Float) {
