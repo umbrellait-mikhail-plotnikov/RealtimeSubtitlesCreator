@@ -32,7 +32,9 @@ class VideoPlayerViewController: UIViewController, SubtitlesViewProtocol {
         didSet {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.subtitleLabel.text = self.resultSubtitlesString
+                let words = self.resultSubtitlesString.components(separatedBy: " ")
+        
+                self.subtitleLabel.text = words.suffix(8).joined(separator: " ")
             }
         }
     }
